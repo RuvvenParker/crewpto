@@ -1,2 +1,2 @@
-# crewpto
+# Crewpto
 FinTech Summit Hackathon 
