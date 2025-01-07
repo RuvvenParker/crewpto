@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XRPL Wallet Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 2rem;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .wallet-info, .transaction-result {
+            margin-bottom: 1.5rem;
+        }
+        button {
+            padding: 0.5rem 1rem;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>XRPL Wallet Demo</h1>
+        
+        <div class="wallet-info">
+            <h3>Wallet Balances</h3>
+            <p><strong>Wallet 1:</strong> {{ wallet1_balance }} XRP</p>
+            <p><strong>Wallet 2:</strong> {{ wallet2_balance }} XRP</p>
+        </div>
+
+        <div class="transaction-form">
+            <h3>Send XRP</h3>
+            <form action="/send" method="POST">
+                <label for="amount">Amount (XRP):</label><br>
+                <input type="number" id="amount" name="amount" required min="1"><br><br>
+                <button type="submit">Send</button>
+            </form>
+        </div>
+
+        {% if transaction_hash %}
+        <div class="transaction-result">
+            <h3>Transaction Result</h3>
+            <p><strong>Transaction Hash:</strong> {{ transaction_hash }}</p>
+            <p><strong>Validated:</strong> {{ transaction_validated }}</p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
