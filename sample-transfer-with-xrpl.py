@@ -13,10 +13,11 @@ from xrpl.wallet import generate_faucet_wallet
 # Step 1: Create a client to connect to the test network
 client = JsonRpcClient("https://s.altnet.rippletest.net:51234")
 
-#Step 2: Create two wallets to send money between on the test network (We'll probably store this on a csv or xlsx sheet to maintain coherence
-# esp. since we have multiple wallets)
+#Step 2: Create two wallets to send money between on the test network (We'll probably store this generated waller on a csv or xlsx sheet to maintain coherence
+# esp. since we have multiple wallets and we dont want to keep generating new wallets each time)
 wallet1 = generate_faucet_wallet(client, debug=True)
 wallet2 = generate_faucet_wallet(client, debug=True)
+
 
 # Both balances should be *100 000 000 (also store on excel with a time stamp or transaction title)
 print("Balances of wallets before Payment tx")
@@ -25,6 +26,7 @@ print("wallet1",get_balance(wallet1.address, client))
 print("wallet2",get_balance(wallet2.address, client))
 
 before_paymentw1 = get_balance(wallet1.address, client) #stored for later use
+print(len(str(before_paymentw1)))
 
 #set amount to trf from wallet1 to wallet2: 
 amt_trf = 1000
@@ -54,4 +56,4 @@ print("Validated:", tx_response.result["validated"])
 print("Balances of wallets after Payment tx:")
 print("wallet1", get_balance(wallet1.address, client))
 print(f"Deduction on wallet 1:{before_paymentw1} - {amt_trf} - 10 drop gas fees = {get_balance(wallet1.address, client)}")
-print("wallet2", get_balance(wallet2.address, client, "wallet2 doesnt incur gas fees so its updated as per normal"))
+print("wallet2", get_balance(wallet2.address, client), "as wallet2 doesnt incur gas fees so its updated as per normal")
