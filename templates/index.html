@@ -30,21 +30,41 @@
         button:hover {
             background-color: #0056b3;
         }
+        select, input {
+            padding: 0.4rem;
+            margin-bottom: 1rem;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>XRPL Wallet Demo</h1>
-        
+
         <div class="wallet-info">
             <h3>Wallet Balances</h3>
             <p><strong>Wallet 1:</strong> {{ wallet1_balance }} XRP</p>
             <p><strong>Wallet 2:</strong> {{ wallet2_balance }} XRP</p>
+            <p><strong>Wallet 3:</strong> {{ wallet3_balance }} XRP</p>
         </div>
 
         <div class="transaction-form">
             <h3>Send XRP</h3>
             <form action="/send" method="POST">
+                <label for="sender">Sender:</label><br>
+                <select id="sender" name="sender" required>
+                    <option value="wallet1">Wallet 1</option>
+                    <option value="wallet2">Wallet 2</option>
+                    <option value="wallet3">Wallet 3</option>
+                </select><br>
+
+                <label for="receiver">Receiver:</label><br>
+                <select id="receiver" name="receiver" required>
+                    <option value="wallet1">Wallet 1</option>
+                    <option value="wallet2">Wallet 2</option>
+                    <option value="wallet3">Wallet 3</option>
+                </select><br>
+
                 <label for="amount">Amount (XRP):</label><br>
                 <input type="number" id="amount" name="amount" required min="1"><br><br>
                 <button type="submit">Send</button>
