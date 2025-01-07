@@ -57,3 +57,4 @@ print("Balances of wallets after Payment tx:")
 print("wallet1", get_balance(wallet1.address, client))
 print(f"Deduction on wallet 1:{before_paymentw1} - {amt_trf} - 10 drop gas fees = {get_balance(wallet1.address, client)}")
 print("wallet2", get_balance(wallet2.address, client), "as wallet2 doesnt incur gas fees so its updated as per normal")
+
