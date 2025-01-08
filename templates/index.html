@@ -16,7 +16,7 @@
             border: 1px solid #ccc;
             border-radius: 8px;
         }
-        .wallet-info, .transaction-result, .simplified-transactions {
+        .wallet-info, .transaction-result, .simplified-transactions, .contract-balances {
             margin-bottom: 1.5rem;
         }
         button {
@@ -41,6 +41,9 @@
         .success {
             color: green;
         }
+        .transaction-result, .contract-balances li {
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body>
@@ -55,19 +58,21 @@
             <p><strong>Wallet 3:</strong> {{ wallet3_balance }} XRP</p>
         </div>
 
-        <!-- Send XRP Form -->
+        <!-- Add Debt Form -->
         <div class="transaction-form">
-            <h3>Send XRP</h3>
-            <form action="/send" method="POST">
-                <label for="sender">Sender:</label><br>
+            <h3>Add Debt</h3>
+            <form action="/add_debt" method="POST">
+                <label for="sender">Debtor:</label><br>
                 <select id="sender" name="sender" required>
+                    <option value="" disabled selected>Select a Debtor</option>
                     <option value="wallet1">Wallet 1</option>
                     <option value="wallet2">Wallet 2</option>
                     <option value="wallet3">Wallet 3</option>
                 </select><br>
 
-                <label for="receiver">Receiver:</label><br>
+                <label for="receiver">Creditor:</label><br>
                 <select id="receiver" name="receiver" required>
+                    <option value="" disabled selected>Select a Creditor</option>
                     <option value="wallet1">Wallet 1</option>
                     <option value="wallet2">Wallet 2</option>
                     <option value="wallet3">Wallet 3</option>
@@ -75,7 +80,7 @@
 
                 <label for="amount">Amount (XRP):</label><br>
                 <input type="number" id="amount" name="amount" required min="1"><br><br>
-                <button type="submit">Send</button>
+                <button type="submit">Add Debt</button>
             </form>
         </div>
 
@@ -83,7 +88,7 @@
         <div class="transaction-result">
             <h3>Transaction Result</h3>
             <p><strong>Transaction Hash:</strong> {{ transaction_hash }}</p>
-            <p><strong>Validated:</strong> {{ transaction_validated }}</p>
+            <p><strong>Validated:</strong> {{ "Yes" if transaction_validated else "No" }}</p>
         </div>
         {% endif %}
 
@@ -93,14 +98,29 @@
             <form action="/simplify" method="POST">
                 <button type="submit">Simplify Debts</button>
             </form>
-
             {% if simplified_transactions %}
-            <h4>Simplified Transactions</h4>
+            <h4>Resulting Simplified Transactions</h4>
             <ul>
                 {% for txn in simplified_transactions %}
-                <li><strong>{{ txn.from }}</strong> pays <strong>{{ txn.to }}</strong>: {{ txn.amount }} drops</li>
+                <li>{{ txn.from }} pays {{ txn.to }}: {{ txn.amount }} XRP</li>
                 {% endfor %}
             </ul>
+            {% else %}
+            <p>No simplified transactions to display.</p>
+            {% endif %}
+        </div>
+
+        <!-- Contract Balances -->
+        <div class="contract-balances">
+            <h3>Contract Balances</h3>
+            {% if contract_balances %}
+                <ul>
+                    {% for balance_key, balance_value in contract_balances.items() %}
+                    <li><strong>{{ balance_key }}</strong>: {{ balance_value }} XRP</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No contract balances to display.</p>
             {% endif %}
         </div>
     </div>
