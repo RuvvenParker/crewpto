@@ -16,7 +16,7 @@
             border: 1px solid #ccc;
             border-radius: 8px;
         }
-        .wallet-info, .transaction-result {
+        .wallet-info, .transaction-result, .simplified-transactions {
             margin-bottom: 1.5rem;
         }
         button {
@@ -35,12 +35,19 @@
             margin-bottom: 1rem;
             width: 100%;
         }
+        .error {
+            color: red;
+        }
+        .success {
+            color: green;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>XRPL Wallet Demo</h1>
 
+        <!-- Wallet Balances -->
         <div class="wallet-info">
             <h3>Wallet Balances</h3>
             <p><strong>Wallet 1:</strong> {{ wallet1_balance }} XRP</p>
@@ -48,6 +55,7 @@
             <p><strong>Wallet 3:</strong> {{ wallet3_balance }} XRP</p>
         </div>
 
+        <!-- Send XRP Form -->
         <div class="transaction-form">
             <h3>Send XRP</h3>
             <form action="/send" method="POST">
@@ -78,6 +86,23 @@
             <p><strong>Validated:</strong> {{ transaction_validated }}</p>
         </div>
         {% endif %}
+
+        <!-- Simplify Transactions -->
+        <div class="simplified-transactions">
+            <h3>Simplify Debts</h3>
+            <form action="/simplify" method="POST">
+                <button type="submit">Simplify Debts</button>
+            </form>
+
+            {% if simplified_transactions %}
+            <h4>Simplified Transactions</h4>
+            <ul>
+                {% for txn in simplified_transactions %}
+                <li><strong>{{ txn.from }}</strong> pays <strong>{{ txn.to }}</strong>: {{ txn.amount }} drops</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
     </div>
 </body>
 </html>
