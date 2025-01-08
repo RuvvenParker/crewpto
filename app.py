@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request
 from xrpl.clients import JsonRpcClient
-from xrpl.models.transactions import Payment, Tx
+from xrpl.models import Payment, Tx
 from xrpl.transaction import submit_and_wait
 from xrpl.account import get_balance
 from xrpl.wallet import generate_faucet_wallet
