@@ -181,7 +181,7 @@ contract_abi = [
     }
 ]
 
-contract_address = "0xb5b97C563eb4fBb9598d5E791CE4926f952eBc44"  # Replace with your contract address
+contract_address = "0x4141b158c0f97DDC874d009c460F90de5AbbB7B1"  # Replace with your contract address
 contract = web3.eth.contract(address=contract_address, abi=contract_abi)
 
 # Step 2: Create three wallets for the demo
