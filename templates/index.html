@@ -56,6 +56,7 @@
             <p><strong>Wallet 1:</strong> {{ wallet1_balance }} XRP</p>
             <p><strong>Wallet 2:</strong> {{ wallet2_balance }} XRP</p>
             <p><strong>Wallet 3:</strong> {{ wallet3_balance }} XRP</p>
+            <p>current gas price: {{current_gas_price}}</p>
         </div>
 
         <!-- Add Debt Form -->
@@ -124,10 +125,31 @@
             {% endif %}
         </div>
 
-        <div><h3>Settle Debt (in dev)</h3></div>
-        <form action="/send" method="POST">
-            <button type="submit">Settle Debt</button>
-        </form>
+        <div class="settle-debt-form">
+    <h3>Settle Debt</h3>
+    <form action="/send" method="POST">
+        <label for="debtor">Debtor:</label><br>
+        <select id="debtor" name="sender" required>
+            <option value="" disabled selected>Select a Debtor</option>
+            <option value="wallet1">Wallet 1</option>
+            <option value="wallet2">Wallet 2</option>
+            <option value="wallet3">Wallet 3</option>
+        </select><br>
+
+        <label for="creditor">Creditor:</label><br>
+        <select id="creditor" name="receiver" required>
+            <option value="" disabled selected>Select a Creditor</option>
+            <option value="wallet1">Wallet 1</option>
+            <option value="wallet2">Wallet 2</option>
+            <option value="wallet3">Wallet 3</option>
+        </select><br>
+
+        <label for="amount">Amount to Settle (XRP):</label><br>
+        <input type="number" id="amount" name="amount" required min="1"><br><br>
+
+        <button type="submit">Settle Debt</button>
+    </form>
+</div>
 
     </div>
 </body>

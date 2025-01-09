@@ -317,7 +317,9 @@ def index():
                     contract_balances[f"{wallet_name} -> {creditor_wallet_name}"] = web3.from_wei(balance, "ether")
 
     return render_template(
+        
         "index.html",
+        current_gas_price =web3.eth.gas_price,
         wallet1_balance=balances["wallet1"],
         wallet2_balance=balances["wallet2"],
         wallet3_balance=balances["wallet3"],
@@ -382,58 +384,63 @@ def index():
 #         transaction_hash=tx_hash.hex(),
 #         transaction_validated=transaction_validated
 #     )
-
 @app.route('/send', methods=['POST'])
 def send():
-    # Get sender, receiver, and amount from form
+    # Get form data: sender (debtor), receiver (creditor), and amount
     sender = request.form.get('sender')
     receiver = request.form.get('receiver')
-    amount = float(request.form.get('amount'))  # Amount in XRP
 
-    # Get sender wallet
+    # Ensure valid sender and receiver
+    if sender not in wallets or receiver not in wallets:
+        return "Invalid sender or receiver wallet", 400
+
+    # Get sender wallet details
     sender_wallet = wallets[sender]
+    receiver_wallet = wallets[receiver]
 
-    # Get the current gas price
+    # Fetch the current debt between sender and receiver from the smart contract
+    debt = contract.functions.balances(sender_wallet["address"], receiver_wallet["address"]).call()
+
+    if debt <= 0:
+        return f"No outstanding debt for {sender} to settle with {receiver}", 400
+
+    # Calculate the gas price
     current_gas_price = web3.eth.gas_price
 
-    # Build the transaction to call the contract function
-    txn = contract.functions.settleDebt(receiver).build_transaction({
-        "from": sender_wallet["address"],
-        "value": web3.to_wei(amount, "ether"),  # Amount in Wei
-        "gas": 2000000,
-        "gasPrice": current_gas_price + web3.to_wei("2", "gwei"),
-        "nonce": web3.eth.get_transaction_count(sender_wallet["address"]),
-    })
+    try:
+        # Build the transaction to call settleDebt
+        txn = contract.functions.settleDebt(receiver_wallet["address"]).build_transaction({
+            "from": sender_wallet["address"],
+            "value": int(web3.to_wei(debt, "ether")),  # Send the exact debt amount
+            "gas": 200000,
+            "gasPrice": current_gas_price,
+            "nonce": web3.eth.get_transaction_count(sender_wallet["address"]),
+        })
 
-    # Sign and send the transaction
-    signed_txn = web3.eth.account.sign_transaction(txn, sender_wallet["private_key"])
-    tx_hash = web3.eth.send_raw_transaction(signed_txn.raw_transaction)
+        # Sign the transaction with the sender's private key
+        signed_txn = web3.eth.account.sign_transaction(txn, sender_wallet["private_key"])
 
-    # Wait for the transaction receipt
-    tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
-    transaction_validated = tx_receipt["status"] == 1
+        # Send the transaction
+        tx_hash = web3.eth.send_raw_transaction(signed_txn.raw_transaction)
 
-    # Fetch updated wallet balances
-    balances = get_wallet_balances()
+        # Wait for the transaction receipt
+        tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+        transaction_validated = tx_receipt["status"] == 1
 
-    return render_template(
-        "index.html",
-        wallet1_balance=balances["wallet1"],
-        wallet2_balance=balances["wallet2"],
-        wallet3_balance=balances["wallet3"],
-        transaction_hash=tx_hash.hex(),
-        transaction_validated=transaction_validated
-    )
+        # Fetch updated wallet balances
+        balances = get_wallet_balances()
 
-
-# @app.route('/simplify', methods=['POST'])
-# def simplify():
-#     # Example input transactions (replace with actual logic)
-#     transactions = [
-#         {"payer": "wallet1", "payee": "wallet2", "amount": 1000},
-#         {"payer": "wallet2", "payee": "wallet3", "amount": 500},
-#         {"payer": "wallet3", "payee": "wallet1", "amount": 1500},
-#     ]
+        return render_template(
+            "index.html",
+            wallet1_balance=balances["wallet1"],
+            wallet2_balance=balances["wallet2"],
+            wallet3_balance=balances["wallet3"],
+            transaction_hash=tx_hash.hex(),
+            transaction_validated=transaction_validated
+        )
+    except Exception as e:
+        print(f"Error during settlement: {e}")
+        return f"Failed to settle debt: {str(e)}", 500
 
 #     # Simplify transactions using your Splitwise algorithm
 #     simplified_transactions = simplify_debts_with_fees(transactions)
