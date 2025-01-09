@@ -4,6 +4,20 @@ from xrpl.models import Payment, Tx
 from xrpl.transaction import submit_and_wait
 from xrpl.account import get_balance
 from web3 import Web3
+import logging
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(name)s %(message)s',
+    handlers=[
+        logging.FileHandler("app.log"),
+        logging.StreamHandler()
+    ]
+)
+
+# Create a logger instance
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
@@ -326,64 +340,6 @@ def index():
         contract_balances=contract_balances
     )
 
-# @app.route('/')
-# def index():
-#     # Fetch wallet balances
-#     balances = get_wallet_balances()
-#     return render_template(
-#         "index.html",
-#         wallet1_balance=balances["wallet1"],
-#         wallet2_balance=balances["wallet2"],
-#         wallet3_balance=balances["wallet3"]
-#     )
-
-
-# @app.route('/send', methods=['POST'])
-# def send():
-#     # Get sender, receiver, and amount from form
-#     sender = request.form.get('sender')
-#     receiver = request.form.get('receiver')
-#     amount = float(request.form.get('amount'))  # Amount in XRP
-
-#     # Get sender and receiver wallets
-#     sender_wallet = wallets[sender]
-#     receiver_wallet = wallets[receiver]
-
-#     # Get the current gas price from the network
-#     current_gas_price = web3.eth.gas_price
-
-#     # Prepare the transaction
-#     txn = {
-#         "from": sender_wallet["address"],
-#         "to": receiver_wallet["address"],
-#         "value": web3.to_wei(amount, "ether"),  # Convert XRP to Wei
-#         "gas": 21000,  # Standard gas limit for transfers
-#         "gasPrice": current_gas_price + web3.to_wei("2", "gwei"),  # Add a tip to current gas price
-#         "nonce": web3.eth.get_transaction_count(sender_wallet["address"]),
-#         "chainId": 1440002,  # Replace with the correct chain ID for XRPL EVM Sidechain
-#     }
-
-#     # Sign the transaction
-#     signed_txn = web3.eth.account.sign_transaction(txn, sender_wallet["private_key"])
-
-#     # Send the transaction
-#     tx_hash = web3.eth.send_raw_transaction(signed_txn.raw_transaction)
-
-#     # Wait for the transaction receipt
-#     tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
-#     transaction_validated = tx_receipt["status"] == 1
-
-#     # Fetch updated wallet balances
-#     balances = get_wallet_balances()
-
-#     return render_template(
-#         "index.html",
-#         wallet1_balance=balances["wallet1"],
-#         wallet2_balance=balances["wallet2"],
-#         wallet3_balance=balances["wallet3"],
-#         transaction_hash=tx_hash.hex(),
-#         transaction_validated=transaction_validated
-#     )
 @app.route('/send', methods=['POST'])
 def send():
     sender = request.form.get('sender')
@@ -451,33 +407,173 @@ def send():
         print(f"Error during settlement: {e}")
         return f"Failed to settle debt: {str(e)}", 500
 
+def fetch_all_balances():
+    """
+    Fetches the Ether/XRP balances for all wallets and the debt balances from the smart contract.
+    
+    Returns:
+        tuple: A tuple containing two dictionaries:
+            - wallet_balances: {wallet_name: balance_in_XRP}
+            - contract_balances: {"walletA -> walletB": debt_amount_in_XRP}
+    """
+    wallet_balances = get_wallet_balances()
+    contract_balances = {}
+    
+    for debtor_name, debtor_wallet in wallets.items():
+        for creditor_name, creditor_wallet in wallets.items():
+            if debtor_name != creditor_name:
+                key = f"{debtor_name} -> {creditor_name}"
+                try:
+                    # Fetch the debt balance from the smart contract
+                    debt_wei = contract.functions.balances(debtor_wallet["address"], creditor_wallet["address"]).call()
+                    debt_xrp = Web3.from_wei(debt_wei, "ether")  # Adjust unit if necessary
+                    
+                    # Format the debt amount
+                    if debt_xrp < 0:
+                        contract_balances[key] = f"-{abs(debt_xrp)}"
+                    else:
+                        contract_balances[key] = f"{debt_xrp}"
+                except Exception as e:
+                    logger.error(f"Error fetching balance for {key}: {e}")
+                    contract_balances[key] = "Error"
+                    
+    return wallet_balances, contract_balances
+
+def parse_simplified_transactions(tx_receipt):
+    """
+    Parses the transaction receipt to extract simplified transactions.
+    
+    Args:
+        tx_receipt (AttributeDict): The transaction receipt obtained after sending the transaction.
+    
+    Returns:
+        list: A list of dictionaries representing simplified transactions.
+              Each dictionary contains 'from', 'to', and 'amount' keys.
+    """
+    simplified_transactions = []
+    try:
+        # Extract DebtsSimplified events
+        events = contract.events.DebtsSimplified().processReceipt(tx_receipt)
+        
+        # Create a mapping of participants to their net balances
+        net_balances = {}
+        for event in events:
+            participant = event['args']['participant']
+            net_balance_wei = event['args']['netBalance']
+            net_balance_xrp = Web3.from_wei(net_balance_wei, "ether")  # Adjust unit if necessary
+            net_balances[participant] = net_balance_xrp
+        
+        # Separate participants into debtors and creditors
+        debtors = []
+        creditors = []
+        for participant, balance in net_balances.items():
+            if balance < 0:
+                debtors.append({"address": participant, "amount": abs(balance)})
+            elif balance > 0:
+                creditors.append({"address": participant, "amount": balance})
+        
+        # Sort debtors and creditors for efficient processing
+        debtors.sort(key=lambda x: x['amount'], reverse=True)
+        creditors.sort(key=lambda x: x['amount'], reverse=True)
+        
+        # Perform debt settlement algorithm
+        i, j = 0, 0
+        while i < len(debtors) and j < len(creditors):
+            debtor = debtors[i]
+            creditor = creditors[j]
+            
+            settlement_amount = min(debtor['amount'], creditor['amount'])
+            
+            simplified_transactions.append({
+                "from": debtor['address'],
+                "to": creditor['address'],
+                "amount": settlement_amount
+            })
+            
+            # Update amounts
+            debtors[i]['amount'] -= settlement_amount
+            creditors[j]['amount'] -= settlement_amount
+            
+            # Move to next debtor or creditor if their amount is settled
+            if debtors[i]['amount'] == 0:
+                i += 1
+            if creditors[j]['amount'] == 0:
+                j += 1
+                
+    except Exception as e:
+        logger.error(f"Error parsing simplified transactions: {e}")
+    
+    return simplified_transactions
+
+def get_wallet_balances():
+    """
+    Retrieves the Ether/XRP balances for all wallets.
+    
+    Returns:
+        dict: A dictionary mapping each wallet name to its balance in XRP.
+    """
+    balances = {}
+    for wallet_name, wallet in wallets.items():
+        try:
+            balance_wei = web3.eth.get_balance(wallet["address"])  # Balance in Wei
+            balance_xrp = Web3.from_wei(balance_wei, "ether")       # Adjust unit if necessary
+            balances[wallet_name] = balance_xrp
+            logger.debug(f"{wallet_name} balance: {balance_xrp} XRP")
+        except Exception as e:
+            logger.error(f"Error fetching balance for {wallet_name}: {e}")
+            balances[wallet_name] = "Error"
+    return balances
+
+
 @app.route('/simplify', methods=['POST'])
-def simplify():
-    # Example participants
-    participants = list(wallets.keys())  # Replace with actual logic to get participants
+def simplify_debts():
+    try:
+        # Pick one wallet to pay gas; e.g., "wallet1"
+        admin_wallet = wallets["wallet1"]
 
-    # Build the transaction to call the contract function
-    txn = contract.functions.simplifyDebts(participants).build_transaction({
-        "from": web3.eth.default_account,  # Replace with the account initiating the transaction
-        "gas": 3000000,
-        "gasPrice": web3.to_wei("5", "gwei"),
-        "nonce": web3.eth.get_transaction_count(web3.eth.default_account),
-    })
+        # The participants you want to net among:
+        participants = [
+            wallets["wallet1"]["address"],
+            wallets["wallet2"]["address"],
+            wallets["wallet3"]["address"],
+        ]
 
-    # Sign and send the transaction
-    signed_txn = web3.eth.account.sign_transaction(txn, private_key="YourPrivateKey")
-    tx_hash = web3.eth.send_raw_transaction(signed_txn.raw_transaction)
+        # Build and send the transaction
+        current_gas_price = web3.eth.gas_price
+        txn = contract.functions.simplifyDebts(participants).build_transaction({
+            "from": admin_wallet["address"],
+            "gas": 300000,  # Adjust if needed
+            "gasPrice": current_gas_price,
+            "nonce": web3.eth.get_transaction_count(admin_wallet["address"]),
+            "chainId": 1440002,  # Check your XRPL EVM sidechain chainId
+        })
+        signed_txn = web3.eth.account.sign_transaction(txn, admin_wallet["private_key"])
+        tx_hash = web3.eth.send_raw_transaction(signed_txn.raw_transaction)
+        tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+        transaction_validated = (tx_receipt["status"] == 1)
 
-    # Fetch updated balances
-    balances = get_wallet_balances()
+    except Exception as e:
+        logger.error(f"Error while simplifying debts: {e}")
+        return f"Failed to simplify debts: {str(e)}", 500
 
+    # Now read back the final net balances to build a simplified list
+    simplified_transactions = get_simplified_transactions(contract, web3, participants)
+
+    # Optionally, also fetch all balances for display:
+    wallet_balances, contract_balances = fetch_all_balances()  # your helper function
+
+    # Render template with updated data
     return render_template(
         "index.html",
-        wallet1_balance=balances["wallet1"],
-        wallet2_balance=balances["wallet2"],
-        wallet3_balance=balances["wallet3"],
-        transaction_hash=tx_hash.hex()
+        transaction_hash=tx_hash.hex(),
+        transaction_validated=transaction_validated,
+        wallet1_balance=wallet_balances["wallet1"],
+        wallet2_balance=wallet_balances["wallet2"],
+        wallet3_balance=wallet_balances["wallet3"],
+        contract_balances=contract_balances,
+        simplified_transactions=simplified_transactions
     )
+
 
 
 def simplify_debts_with_fees(transactions):
@@ -507,7 +603,28 @@ def simplify_debts_with_fees(transactions):
 
     return simplified_transactions
 
+def get_simplified_transactions(contract, web3, participants):
+    """
+    Reads the final (net) balances from the contract and returns
+    a list of simplified 'owed' relationships.
+    """
+    simplified_txs = []
 
-
+    for i in range(len(participants)):
+        for j in range(len(participants)):
+            if i != j:
+                amount_wei = contract.functions.balances(participants[i], participants[j]).call()
+                if amount_wei > 0:
+                    # 'participants[i]' owes 'participants[j]' this amount
+                    amount_xrp = web3.from_wei(amount_wei, 'ether')  # Adjust the unit if necessary
+                    simplified_txs.append({
+                        "from": participants[i],
+                        "to": participants[j],
+                        "amount": amount_xrp
+                    })
+    return simplified_txs
+  
+  
+  
 if __name__ == '__main__':
     app.run(debug=True)
