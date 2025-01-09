@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from xrpl.clients import JsonRpcClient
 from xrpl.models import Payment, Tx
 from xrpl.transaction import submit_and_wait
@@ -27,175 +27,182 @@ provider = Web3.HTTPProvider("https://rpc-evm-sidechain.xrpl.org")
 web3 = Web3(provider)
 # Add the contract ABI and address
 contract_abi = [
-    {
-      "inputs": [],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
-    },
-    {
-      "anonymous": False,
-      "inputs": [],
-      "name": "AllDebtsSettled",
-      "type": "event"
-    },
-    {
-      "anonymous": False,
-      "inputs": [
-        {
-          "indexed": True,
-          "internalType": "address",
-          "name": "debtor",
-          "type": "address"
-        },
-        {
-          "indexed": True,
-          "internalType": "address",
-          "name": "creditor",
-          "type": "address"
-        },
-        {
-          "indexed": False,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "DebtAdded",
-      "type": "event"
-    },
-    {
-      "anonymous": False,
-      "inputs": [
-        {
-          "indexed": True,
-          "internalType": "address",
-          "name": "payer",
-          "type": "address"
-        },
-        {
-          "indexed": True,
-          "internalType": "address",
-          "name": "payee",
-          "type": "address"
-        },
-        {
-          "indexed": False,
-          "internalType": "uint256",
-          "name": "amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "DebtSettled",
-      "type": "event"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_debtor",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "_creditor",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_amount",
-          "type": "uint256"
-        }
-      ],
-      "name": "addDebt",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address[]",
-          "name": "participants",
-          "type": "address[]"
-        }
-      ],
-      "name": "areAllDebtsSettled",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "name": "balances",
-      "outputs": [
-        {
-          "internalType": "int256",
-          "name": "",
-          "type": "int256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "owner",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_creditor",
-          "type": "address"
-        }
-      ],
-      "name": "settleDebt",
-      "outputs": [],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address[]",
-          "name": "participants",
-          "type": "address[]"
-        }
-      ],
-      "name": "simplifyDebts",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    }
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": False,
+		"inputs": [],
+		"name": "AllDebtsSettled",
+		"type": "event"
+	},
+	{
+		"anonymous": False,
+		"inputs": [
+			{
+				"indexed": True,
+				"internalType": "address",
+				"name": "debtor",
+				"type": "address"
+			},
+			{
+				"indexed": True,
+				"internalType": "address",
+				"name": "creditor",
+				"type": "address"
+			},
+			{
+				"indexed": False,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "DebtAdded",
+		"type": "event"
+	},
+	{
+		"anonymous": False,
+		"inputs": [
+			{
+				"indexed": True,
+				"internalType": "address",
+				"name": "payer",
+				"type": "address"
+			},
+			{
+				"indexed": True,
+				"internalType": "address",
+				"name": "payee",
+				"type": "address"
+			},
+			{
+				"indexed": False,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "DebtSettled",
+		"type": "event"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "fallback"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_debtor",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "_creditor",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			}
+		],
+		"name": "addDebt",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address[]",
+				"name": "participants",
+				"type": "address[]"
+			}
+		],
+		"name": "areAllDebtsSettled",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "balances",
+		"outputs": [
+			{
+				"internalType": "int256",
+				"name": "",
+				"type": "int256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_creditor",
+				"type": "address"
+			}
+		],
+		"name": "settleDebt",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address[]",
+				"name": "participants",
+				"type": "address[]"
+			}
+		],
+		"name": "simplifyDebts",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	}
 ]
-
-contract_address = "0x4141b158c0f97DDC874d009c460F90de5AbbB7B1"  # Replace with your contract address
+contract_address = "0xf0aD6F57c66516D35C212f3510B3166E64D5F2F0"  # Replace with your contract address
 contract = web3.eth.contract(address=contract_address, abi=contract_abi)
 
 # Step 2: Create three wallets for the demo
@@ -230,7 +237,11 @@ def contract_balances():
             if wallet_name != creditor_wallet_name:
                 # Fetch balance from the smart contract
                 balance = contract.functions.balances(wallet["address"], creditor_wallet["address"]).call()
-                
+
+                # Convert to a signed int256 value
+                if balance >= 2**255:  # If the value is in the upper half of uint256 range
+                    balance -= 2**256  # Interpret it as a negative int256
+                                
                 # Convert balance to Ether for readability
                 if balance < 0:
                     readable_balance = f"-{web3.from_wei(abs(balance), 'ether')}"
@@ -392,14 +403,7 @@ def send():
 
         # Update and return wallet balances
         balances = get_wallet_balances()
-        return render_template(
-            "index.html",
-            wallet1_balance=balances["wallet1"],
-            wallet2_balance=balances["wallet2"],
-            wallet3_balance=balances["wallet3"],
-            transaction_hash=tx_hash.hex(),
-            transaction_validated=transaction_validated
-        )
+        return redirect(url_for('index'))
     except ValueError as ve:
         print(f"ValueError: {ve}")
         return f"Invalid input: {str(ve)}", 400
@@ -563,16 +567,7 @@ def simplify_debts():
     wallet_balances, contract_balances = fetch_all_balances()  # your helper function
 
     # Render template with updated data
-    return render_template(
-        "index.html",
-        transaction_hash=tx_hash.hex(),
-        transaction_validated=transaction_validated,
-        wallet1_balance=wallet_balances["wallet1"],
-        wallet2_balance=wallet_balances["wallet2"],
-        wallet3_balance=wallet_balances["wallet3"],
-        contract_balances=contract_balances,
-        simplified_transactions=simplified_transactions
-    )
+    return redirect(url_for('index'))
 
 
 

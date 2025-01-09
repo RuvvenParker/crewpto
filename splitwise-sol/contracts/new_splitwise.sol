@@ -53,6 +53,7 @@ contract Splitwise {
                     if (netBalances[j] < 0) {
                         int256 settlement = netBalances[i] < -netBalances[j] ? netBalances[i] : -netBalances[j];
                         balances[participants[j]][participants[i]] += settlement;
+                        balances[participants[i]][participants[j]] -= settlement; // Account for negative balances
                         netBalances[i] -= settlement;
                         netBalances[j] += settlement;
 
