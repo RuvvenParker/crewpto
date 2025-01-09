@@ -4,68 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XRPL Wallet Demo</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 2rem;
-        }
-        .container {
-            max-width: 600px;
-            margin: auto;
-            padding: 2rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-        .wallet-info, .transaction-result, .simplified-transactions, .contract-balances {
-            margin-bottom: 1.5rem;
-        }
-        button {
-            padding: 0.5rem 1rem;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        select, input {
-            padding: 0.4rem;
-            margin-bottom: 1rem;
-            width: 100%;
-        }
-        .error {
-            color: red;
-        }
-        .success {
-            color: green;
-        }
-        .transaction-result, .contract-balances li {
-            word-wrap: break-word;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>XRPL Wallet Demo</h1>
+        <div id="head"><h1>CREWPTO</h1>
+        <p id="comments"><i>Easy on Friendships. Easier on Your Wallet.</i></p></div>
 
         <!-- Wallet Balances -->
         <div class="wallet-info">
             <h3>Wallet Balances</h3>
+            <p id="commentsh">For verifying successful transactions</p>
+            <hr/>
             <p><strong>Wallet 1:</strong> {{ wallet1_balance }} XRP</p>
             <p><strong>Wallet 2:</strong> {{ wallet2_balance }} XRP</p>
             <p><strong>Wallet 3:</strong> {{ wallet3_balance }} XRP</p>
-            <p>current gas price: {{current_gas_price}}</p>
+            <p>Current Gas Price: {{current_gas_price}}</p>
         </div>
 
         <!-- Add Debt Form -->
         <div class="transaction-form">
             <h3>Add Debt</h3>
+            <p id="comments">Add various payments</p>
+            <hr/>
             <form action="/add_debt" method="POST">
                 <label for="sender">Debtor:</label><br>
                 <select id="sender" name="sender" required>
-                    <option value="" disabled selected>Select a Debtor</option>
+                    <option value="" disabled selected>Select a Debtor (who owes)</option>
                     <option value="wallet1">Wallet 1</option>
                     <option value="wallet2">Wallet 2</option>
                     <option value="wallet3">Wallet 3</option>
@@ -73,7 +38,7 @@
 
                 <label for="receiver">Creditor:</label><br>
                 <select id="receiver" name="receiver" required>
-                    <option value="" disabled selected>Select a Creditor</option>
+                    <option value="" disabled selected>Select a Creditor (who is owed)</option>
                     <option value="wallet1">Wallet 1</option>
                     <option value="wallet2">Wallet 2</option>
                     <option value="wallet3">Wallet 3</option>
