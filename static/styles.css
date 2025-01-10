@@ -16,6 +16,21 @@ body {
     background-color: #181717;
     box-shadow:  0px 0px 20px black;
 }
+
+.container img {
+    /* position: absolute;
+    top: 75px;  
+    right: 500px; 
+    width: 82px; 
+    height: auto;  */
+    position: absolute;
+    top: 160px;    
+    left: 50%;   
+    transform: translateX(-50%); 
+    width: 200px; 
+    height: auto; 
+}
+
 .wallet-info, .transaction-result, .simplified-transactions, .contract-balances, .settle-debt-form {
     margin-bottom: 1.5rem;
     color: white;
@@ -26,6 +41,12 @@ body {
     padding: 8px;
     width: fit-content;
     border-radius: 8px;
+    margin-top: 11rem;
+    position: absolute;
+    top: 180px;    
+    left: 50%;   
+    transform: translateX(-50%); 
+
 }
 #comments { 
     font-size: small;
@@ -65,6 +86,7 @@ select, input {
     color: green;
 }
 .transaction-form {
+    margin-top: 30rem;
     word-wrap: break-word;
     color: rgb(14, 13, 13);
     background-color: #66a2c0;
