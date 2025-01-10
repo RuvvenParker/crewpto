@@ -10,20 +10,20 @@ Crewpto is a blockchain-based platform designed to simplify group expense manage
 To run this project, follow these steps:
 
 1. Clone the repository:
-   git clone <repo-url>
+   `git clone <<repo-url>>`
 
 2. Navigate into the project directory:
-   cd crewpto
+   `cd crewpto`
 
 3. Install the required dependencies on terminal:
-   pip install flask
+   ```pip install flask
    pip install xrpl-py
-   pip install web3
+   `pip install web3```
 
 **Note:** For security reasons, we've removed the private and public keys for the three wallets in the code. You must input the private and public keys for the three wallets in the app.py file before running the application.
 
 4. After setting up the private and public keys in app.py, run the app:
-   python app.py
+   `python app.py`
 The app will start a local server. Open a browser and navigate to http://127.0.0.1:5000/ to access the platform.
 
 ## Smart Contract
