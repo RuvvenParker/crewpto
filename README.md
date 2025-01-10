@@ -18,7 +18,7 @@ To run this project, follow these steps:
 3. Install the required dependencies on terminal:
    ```pip install flask
    pip install xrpl-py
-   `pip install web3```
+   pip install web3```
 
 **Note:** For security reasons, we've removed the private and public keys for the three wallets in the code. You must input the private and public keys for the three wallets in the app.py file before running the application.
 
