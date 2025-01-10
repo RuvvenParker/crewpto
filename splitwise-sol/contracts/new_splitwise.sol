@@ -10,7 +10,7 @@ contract Splitwise {
     constructor() {
         owner = msg.sender; // Owner is the creator of the contract
     }
-    // Add a debt between two participants (no longer restricted to only owner)
+    // Add a debt between two participants 
     function addDebt(address _debtor, address _creditor, uint256 _amount) public {
         require(_debtor != _creditor, "Debtor and creditor cannot be the same");
         require(_amount > 0, "Debt amount must be greater than zero");
@@ -19,7 +19,7 @@ contract Splitwise {
         balances[_creditor][_debtor] -= int256(_amount);
         emit DebtAdded(_debtor, _creditor, _amount);
     }
-    // Define the struct to store the participant and their net balance
+    // Structure to store the participant and their net balance
     struct ParticipantBalance {
         address participant;
         int256 netBalance;

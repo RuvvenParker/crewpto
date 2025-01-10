@@ -202,23 +202,23 @@ contract_abi = [
 		"type": "receive"
 	}
 ]
-contract_address = "0xf0aD6F57c66516D35C212f3510B3166E64D5F2F0"  # Replace with your contract address
+contract_address = "0xf0aD6F57c66516D35C212f3510B3166E64D5F2F0"  
 contract = web3.eth.contract(address=contract_address, abi=contract_abi)
 
-# Step 2: Create three wallets for the demo
+# Step 2: Create three wallets 
 # Replace these with your MetaMask wallet private keys and addresses
 wallets = {
     "wallet1": {
-        "address": "0x567788dc1303FFe0b5D07E98f4055332c80076bD",  # MetaMask Wallet 1 address
-        "private_key": "4a959af2b312c1500a19e2422cb60c1396a0a945b640fb2d09bfef6dcea33605",  # Wallet 1 private key
+        "address": "0xxxxx",  # MetaMask Wallet 1 address
+        "private_key": "xxxxx",  # Wallet 1 private key
     },
     "wallet2": {
-        "address": "0x78F7627c644b6cE7Edd533eF13C90Aa7314296FE",  # MetaMask Wallet 2 address
-        "private_key": "7423d857ae7f04392eced58eba93f0b1fa4c59fe8270adbcc6386289cd9fd07d",  # Wallet 2 private key
+        "address": "0xxxxx",  # MetaMask Wallet 2 address
+        "private_key": "xxxxx",  # Wallet 2 private key
     },
     "wallet3": {
-        "address": "0xAf8B5E16015e4261F30F3750d41cE5eDf838c8bc",  # MetaMask Wallet 3 address
-        "private_key": "9881f20d2d871db1d6292b572dd9b4d01174d9f0c3871ad458fea8ba7c8285c0",  # Wallet 3 private key
+        "address": "0xxxxx",  # MetaMask Wallet 3 address
+        "private_key": "xxxxx",  # Wallet 3 private key
     },
 }
 
@@ -277,7 +277,7 @@ def add_debt():
             "gas": 200000,
             "gasPrice": current_gas_price,
             "nonce": web3.eth.get_transaction_count(sender_wallet["address"]),
-            "chainId": 1440002,  # Replace with the correct chain ID for the XRPL EVM sidechain
+            "chainId": 1440002,  
         })
 
         # Sign the transaction with the sender's private key
@@ -374,8 +374,8 @@ def send():
         current_gas_price = web3.eth.gas_price
         gas_cost = 200000 * current_gas_price
 
-        # Convert debt to Wei if necessary
-        if isinstance(debt, int):  # Assume already in Wei
+        # Convert debt to Wei if needed
+        if isinstance(debt, int): 
             value_in_wei = debt
         else:
             value_in_wei = int(web3.to_wei(float(debt), "ether"))
@@ -430,7 +430,7 @@ def fetch_all_balances():
                 try:
                     # Fetch the debt balance from the smart contract
                     debt_wei = contract.functions.balances(debtor_wallet["address"], creditor_wallet["address"]).call()
-                    debt_xrp = Web3.from_wei(debt_wei, "ether")  # Adjust unit if necessary
+                    debt_xrp = Web3.from_wei(debt_wei, "ether") 
                     
                     # Format the debt amount
                     if debt_xrp < 0:
@@ -464,7 +464,7 @@ def parse_simplified_transactions(tx_receipt):
         for event in events:
             participant = event['args']['participant']
             net_balance_wei = event['args']['netBalance']
-            net_balance_xrp = Web3.from_wei(net_balance_wei, "ether")  # Adjust unit if necessary
+            net_balance_xrp = Web3.from_wei(net_balance_wei, "ether") 
             net_balances[participant] = net_balance_xrp
         
         # Separate participants into debtors and creditors
@@ -520,7 +520,7 @@ def get_wallet_balances():
     for wallet_name, wallet in wallets.items():
         try:
             balance_wei = web3.eth.get_balance(wallet["address"])  # Balance in Wei
-            balance_xrp = Web3.from_wei(balance_wei, "ether")       # Adjust unit if necessary
+            balance_xrp = Web3.from_wei(balance_wei, "ether")       
             balances[wallet_name] = balance_xrp
             logger.debug(f"{wallet_name} balance: {balance_xrp} XRP")
         except Exception as e:
@@ -532,7 +532,7 @@ def get_wallet_balances():
 @app.route('/simplify', methods=['POST'])
 def simplify_debts():
     try:
-        # Pick one wallet to pay gas; e.g., "wallet1"
+        # Pick one wallet to pay gas
         admin_wallet = wallets["wallet1"]
 
         # The participants you want to net among:
@@ -549,7 +549,7 @@ def simplify_debts():
             "gas": 300000,  # Adjust if needed
             "gasPrice": current_gas_price,
             "nonce": web3.eth.get_transaction_count(admin_wallet["address"]),
-            "chainId": 1440002,  # Check your XRPL EVM sidechain chainId
+            "chainId": 1440002,  
         })
         signed_txn = web3.eth.account.sign_transaction(txn, admin_wallet["private_key"])
         tx_hash = web3.eth.send_raw_transaction(signed_txn.raw_transaction)
@@ -563,8 +563,8 @@ def simplify_debts():
     # Now read back the final net balances to build a simplified list
     simplified_transactions = get_simplified_transactions(contract, web3, participants)
 
-    # Optionally, also fetch all balances for display:
-    wallet_balances, contract_balances = fetch_all_balances()  # your helper function
+    # Also fetch all balances for display (optional):
+    wallet_balances, contract_balances = fetch_all_balances()  
 
     # Render template with updated data
     return redirect(url_for('index'))
@@ -572,7 +572,6 @@ def simplify_debts():
 
 
 def simplify_debts_with_fees(transactions):
-    # Example Splitwise algorithm for simplification
     balances = {}
     for txn in transactions:
         payer = txn["payer"]
@@ -611,7 +610,7 @@ def get_simplified_transactions(contract, web3, participants):
                 amount_wei = contract.functions.balances(participants[i], participants[j]).call()
                 if amount_wei > 0:
                     # 'participants[i]' owes 'participants[j]' this amount
-                    amount_xrp = web3.from_wei(amount_wei, 'ether')  # Adjust the unit if necessary
+                    amount_xrp = web3.from_wei(amount_wei, 'ether') 
                     simplified_txs.append({
                         "from": participants[i],
                         "to": participants[j],

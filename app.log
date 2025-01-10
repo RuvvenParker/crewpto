@@ -562,3 +562,7 @@ Expected 0 argument(s) but received 1 argument(s).
 2025-01-10 14:08:42,981 INFO werkzeug 127.0.0.1 - - [10/Jan/2025 14:08:42] "GET /static/styles.css HTTP/1.1" 200 -
 2025-01-10 14:08:42,984 INFO werkzeug 127.0.0.1 - - [10/Jan/2025 14:08:42] "[36mGET /static/crewpto_logo.png HTTP/1.1[0m" 304 -
 2025-01-10 14:08:43,056 INFO werkzeug 127.0.0.1 - - [10/Jan/2025 14:08:43] "[36mGET /static/crewpto_background.png HTTP/1.1[0m" 304 -
+2025-01-10 19:12:43,599 INFO werkzeug  * Detected change in '/Users/pragyasaxena/Desktop/Crewpto/crewpto/app.py', reloading
+2025-01-10 19:12:43,864 INFO werkzeug  * Restarting with stat
+2025-01-10 19:12:44,891 WARNING werkzeug  * Debugger is active!
+2025-01-10 19:12:44,909 INFO werkzeug  * Debugger PIN: 112-402-141
