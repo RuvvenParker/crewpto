@@ -4,30 +4,32 @@
 body {
     font-family: Arial, sans-serif;
     margin: 2rem;
-    background-color: #213f60;
+    background-image: url('crewpto_background.png'); 
+    background-size: cover;
 }
 .container {
     max-width: 600px;
     margin: auto;
     padding: 2rem;
     border: 1px solid #ccc;
-    border-radius: 8px;
-    background: linear-gradient( #63afff, #1f5da0);
+    border-radius: 45px;
+    background-color: #181717;
     box-shadow:  0px 0px 20px black;
 }
-.wallet-info, .transaction-result, .simplified-transactions, .contract-balances {
+.wallet-info, .transaction-result, .simplified-transactions, .contract-balances, .settle-debt-form {
     margin-bottom: 1.5rem;
+    color: white;
 }
 .wallet-info {
-    background-color: #1766ba;
-    color: white;
+    background-color: #55595d;
+    color: rgb(255, 252, 252);
     padding: 8px;
     width: fit-content;
     border-radius: 8px;
 }
 #comments { 
     font-size: small;
-    opacity: 0.6;
+    color: white;
     margin-top: -12px;
 }
 button {
@@ -46,9 +48,15 @@ button:hover {
     transform: scale(1.10);
 }
 select, input {
-    padding: 0.4rem;
-    margin-bottom: 1rem;
-    width: 100%;
+    padding: 0.4rem;                
+    margin-bottom: 1rem;           
+    width: 40%;                   
+    font-size: 14px;                
+    border-radius: 8px;            
+    border: 1px solid #ccc;        
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1); 
+    color: #333;                   
 }
 .error {
     color: red;
@@ -58,11 +66,38 @@ select, input {
 }
 .transaction-form {
     word-wrap: break-word;
-    color: white;
-    background-color: #1766ba;
+    color: rgb(14, 13, 13);
+    background-color: #66a2c0;
     border-radius: 8px;
     padding: 5px;
 }
+.simplified-transactions {
+    word-wrap: break-word;
+    color: white;
+    margin-top: 1.5rem;
+    background-color: #667ec0;
+    border-radius: 8px;
+    padding: 5px;
+}
+.contract-balances {
+    word-wrap: break-word;
+    color: white;
+    background-color: #8166c0;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+
+.settle-debt-form {
+    word-wrap: break-word;
+    color: white;
+    background-color: #9a66c0;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+
+
 
 #head{
     border-radius: 8px;
@@ -81,10 +116,7 @@ h1{
 
 #commentsh { 
     font-size: small;
-    color:white;
-    opacity: 0.6;
+    color: rgb(255, 254, 254);
 }
 
-#commentsh :hover{
-    color: white;
-}
+
